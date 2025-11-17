@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Adressverwaltung</title>
+    <style>
+        .section-address-app {
+            max-width: 900px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+        .section-address-form {
+            padding: 15px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .address-form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .section-address-form-row {
+            display: flex;
+            flex-direction: column;
+        }
+        .address-form-label {
+            margin-bottom: 4px;
+        }
+        .address-form-input {
+            padding: 6px;
+            border: 1px solid #cccccc;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        .section-address-form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .address-form-button-save {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            background-color: #007acc;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .address-form-button-reset {
+            padding: 8px 16px;
+            border: 1px solid #777777;
+            border-radius: 3px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .section-address-list {
+            padding: 15px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+        }
+        .address-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .address-list-table th {
+            text-align: left;
+            border-bottom: 1px solid #cccccc;
+            padding: 8px;
+        }
+        .address-list-table td {
+            border-bottom: 1px solid #eeeeee;
+            padding: 8px;
+        }
+        .address-list-action-edit {
+            padding: 4px 8px;
+            margin-right: 4px;
+            border: none;
+            border-radius: 3px;
+            background-color: #ffa500;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .address-list-action-delete {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            background-color: #cc0000;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <section class="section-address-app">
+        <h1>Adressverwaltung</h1>
+
+        <section class="section-address-form">
+            <h2>Adresse erfassen oder ändern</h2>
+            <form id="address-form" class="address-form-container">
+                <input type="hidden" id="address-id">
+
+                <section class="section-address-form-row">
+                    <label class="address-form-label" for="address-name">Name</label>
+                    <input class="address-form-input" id="address-name" type="text" required>
+                </section>
+
+                <section class="section-address-form-row">
+                    <label class="address-form-label" for="address-street">Straße</label>
+                    <input class="address-form-input" id="address-street" type="text">
+                </section>
+
+                <section class="section-address-form-row">
+                    <label class="address-form-label" for="address-zip">PLZ</label>
+                    <input class="address-form-input" id="address-zip" type="text">
+                </section>
+
+                <section class="section-address-form-row">
+                    <label class="address-form-label" for="address-city">Ort</label>
+                    <input class="address-form-input" id="address-city" type="text">
+                </section>
+
+                <section class="section-address-form-actions">
+                    <button class="address-form-button-save" type="submit">Speichern</button>
+                    <button id="address-reset" class="address-form-button-reset" type="button">Neu</button>
+                </section>
+            </form>
+        </section>
+
+        <section class="section-address-list">
+            <h2>Adressen</h2>
+            <table class="address-list-table">
+                <thead>
+                    <tr>
+                        <th class="address-list-header-id">ID</th>
+                        <th class="address-list-header-name">Name</th>
+                        <th class="address-list-header-street">Straße</th>
+                        <th class="address-list-header-zip">PLZ</th>
+                        <th class="address-list-header-city">Ort</th>
+                        <th class="address-list-header-actions">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody id="address-table-body"></tbody>
+            </table>
+        </section>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("address-form");
+            const idInput = document.getElementById("address-id");
+            const nameInput = document.getElementById("address-name");
+            const streetInput = document.getElementById("address-street");
+            const zipInput = document.getElementById("address-zip");
+            const cityInput = document.getElementById("address-city");
+            const resetButton = document.getElementById("address-reset");
+            const tableBody = document.getElementById("address-table-body");
+
+            function loadAddresses() {
+                fetch("/api/addresses")
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        renderTable(data);
+                    });
+            }
+
+            function renderTable(addresses) {
+                tableBody.innerHTML = "";
+                addresses.forEach(function (address) {
+                    const row = document.createElement("tr");
+
+                    const cellId = document.createElement("td");
+                    cellId.textContent = address.id;
+                    row.appendChild(cellId);
+
+                    const cellName = document.createElement("td");
+                    cellName.textContent = address.name;
+                    row.appendChild(cellName);
+
+                    const cellStreet = document.createElement("td");
+                    cellStreet.textContent = address.street || "";
+                    row.appendChild(cellStreet);
+
+                    const cellZip = document.createElement("td");
+                    cellZip.textContent = address.zip || "";
+                    row.appendChild(cellZip);
+
+                    const cellCity = document.createElement("td");
+                    cellCity.textContent = address.city || "";
+                    row.appendChild(cellCity);
+
+                    const cellActions = document.createElement("td");
+
+                    const editButton = document.createElement("button");
+                    editButton.textContent = "Bearbeiten";
+                    editButton.className = "address-list-action-edit";
+                    editButton.addEventListener("click", function () {
+                        startEdit(address);
+                    });
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Löschen";
+                    deleteButton.className = "address-list-action-delete";
+                    deleteButton.addEventListener("click", function () {
+                        deleteAddress(address.id);
+                    });
+
+                    cellActions.appendChild(editButton);
+                    cellActions.appendChild(deleteButton);
+                    row.appendChild(cellActions);
+
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function resetForm() {
+                idInput.value = "";
+                nameInput.value = "";
+                streetInput.value = "";
+                zipInput.value = "";
+                cityInput.value = "";
+                nameInput.focus();
+            }
+
+            function startEdit(address) {
+                idInput.value = address.id;
+                nameInput.value = address.name;
+                streetInput.value = address.street || "";
+                zipInput.value = address.zip || "";
+                cityInput.value = address.city || "";
+                nameInput.focus();
+            }
+
+            function saveAddress(event) {
+                event.preventDefault();
+                const payload = {
+                    name: nameInput.value,
+                    street: streetInput.value,
+                    zip: zipInput.value,
+                    city: cityInput.value
+                };
+                const currentId = idInput.value;
+
+                if (currentId) {
+                    fetch("/api/addresses/" + currentId, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(function () {
+                        resetForm();
+                        loadAddresses();
+                    });
+                } else {
+                    fetch("/api/addresses", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(function () {
+                        resetForm();
+                        loadAddresses();
+                    });
+                }
+            }
+
+            function deleteAddress(id) {
+                fetch("/api/addresses/" + id, {
+                    method: "DELETE"
+                }).then(function () {
+                    loadAddresses();
+                });
+            }
+
+            form.addEventListener("submit", saveAddress);
+            resetButton.addEventListener("click", function () {
+                resetForm();
+            });
+
+            loadAddresses();
+        });
+    </script>
+</body>
+</html>
